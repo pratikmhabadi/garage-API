@@ -5,6 +5,7 @@ import com.garage.garage.dao.VehicleDao;
 import com.garage.garage.entities.Garage;
 import com.garage.garage.entities.Vehicle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -106,11 +107,32 @@ public class ServiceImplementation implements VehicleService, GarageService {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date date = new Date();
         Vehicle vehicle = getVehicle(vehicleId);
-        if (vehicle.getVehicleStatus().equals("repairing") ){
+        if (vehicle.getVehicleStatus().equals("repairing")) {
             vehicle.setVehicleStatus("repaired");
             vehicle.setDate(formatter.format(date));
         }
         return vehicleDao.save(vehicle);
+    }
+
+    // update vehicles status from repairing to repaired automatically
+    @Scheduled(fixedDelay = 1000)
+    void autoUpdateToRepaired() throws InterruptedException {
+        List<Vehicle> list = getVehiclesByStatus("repairing");
+        if (!list.isEmpty()) {
+            Vehicle vehicle = getVehicle(list.get(0).getVehicleId());
+            vehicle.setVehicleStatus("repaired");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            Date date = new Date();
+            vehicle.setDate(formatter.format(date));
+            vehicleDao.save(vehicle);
+            Random random = new Random();
+            int delay = random.nextInt(9999);//get random delay
+            Thread.sleep(delay);
+        } else {
+            //if there is no entry found it will sleep for 5 min
+            System.out.println("No repairing Vehicle found");
+            Thread.sleep(300000);
+        }
     }
 
     //---------------delete methods-------------
