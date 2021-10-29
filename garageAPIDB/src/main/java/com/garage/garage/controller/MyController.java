@@ -1,6 +1,7 @@
 package com.garage.garage.controller;
 
 import com.garage.garage.entities.Garage;
+import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
 import com.garage.garage.services.GarageService;
 import com.garage.garage.services.VehicleService;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 public class MyController {
@@ -26,8 +28,14 @@ public class MyController {
 
     //get garage by Id
     @GetMapping("/garage/{garageId}")
-    public Garage getGarage(@PathVariable String garageId){
-        return this.garageService.getGarage(Integer.parseInt(garageId));
+    public Garage getGarageByID(@PathVariable String garageId) {
+        return this.garageService.getGarageById(Integer.parseInt(garageId));
+    }
+
+    //get garage by name
+    @GetMapping("/garages/{garageName}")
+    public List<Garage> getGarageByName(@PathVariable String garageName) {
+        return this.garageService.getGarageByName(garageName.trim().toLowerCase(Locale.ROOT));
     }
 
     //get All Vehicles
@@ -68,33 +76,33 @@ public class MyController {
 
     //get vehicles by garage ID
     @GetMapping("garage/{garageId}/vehicles")
-    public List<Vehicle> getVehiclesByGarage(@PathVariable String garageId){
+    public List<Vehicle> getVehiclesByGarage(@PathVariable String garageId) {
         return this.vehicleService.getVehiclesByGarage(Integer.parseInt(garageId));
     }
 
     //--------------------PostMappings----------------------------
     //add new vehicle
-    @PostMapping("/garage/{garageId}/vehicles/{registerNo}/{vehicleType}")
-    public Vehicle addVehicle(@PathVariable String garageId,@PathVariable String registerNo, @PathVariable String vehicleType) {
-        return this.vehicleService.addVehicle(Integer.parseInt(garageId),registerNo, vehicleType);
+    @PostMapping("/garage/{garageName}/vehicle/{registerNo}/{vehicleType}")
+    public Message addVehicle(@PathVariable String garageName, @PathVariable String registerNo, @PathVariable String vehicleType) {
+        return this.vehicleService.addVehicle(garageName.trim().toLowerCase(Locale.ROOT), registerNo.trim().toLowerCase(Locale.ROOT), vehicleType.trim().toLowerCase(Locale.ROOT));
     }
 
     @PostMapping("/garage/{garageName}/{garageCity}/{garageState}")
-    public  Garage addGarage(@PathVariable String garageName,@PathVariable String garageCity,@PathVariable String garageState){
-        return this.garageService.addGarage(garageName,garageCity,garageState);
+    public Message addGarage(@PathVariable String garageName, @PathVariable String garageCity, @PathVariable String garageState) {
+        return this.garageService.addGarage(garageName.trim().toLowerCase(Locale.ROOT), garageCity.trim().toLowerCase(Locale.ROOT), garageState.trim().toLowerCase(Locale.ROOT));
     }
 
     //------------------PutMappings--------------------------
     //update vehicle by status by ID
-    @PutMapping("/vehicle/{vehicleId}/{interval}")
-    public Vehicle updateVehicle(@PathVariable String vehicleId,@PathVariable String interval) {
-        return this.vehicleService.updateVehicle(Integer.parseInt(vehicleId),Integer.parseInt(interval));
+    @PutMapping("/vehicle/{vehicleId}")
+    public Message updateVehicle(@PathVariable String vehicleId) {
+        return this.vehicleService.updateVehicle(Integer.parseInt(vehicleId));
     }
 
     //---------------DeleteMappings--------------------
     //delete vehicle by ID
     @DeleteMapping("/vehicle/{vehicleId}")
-    public void deleteVehicle(@PathVariable String vehicleId) {
-        this.vehicleService.deleteVehicle(Integer.parseInt(vehicleId));
+    public Message deleteVehicle(@PathVariable String vehicleId) {
+        return this.vehicleService.deleteVehicle(Integer.parseInt(vehicleId));
     }
 }

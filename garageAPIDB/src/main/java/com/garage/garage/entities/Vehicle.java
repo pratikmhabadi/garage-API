@@ -3,6 +3,7 @@ package com.garage.garage.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
@@ -16,21 +17,23 @@ public class Vehicle {
     private String vehicleStatus;
     private String vehicleType;
     private double cost;
-    private String date;
+    private LocalDateTime inTime;
+    private LocalDateTime outTime;
+
 
     @ManyToOne
     @JoinColumn(name="garage_id")
     @JsonBackReference
     private Garage garage;
 
-    public Vehicle(int vehicleId, String registerNo, String vehicleStatus, String vehicleType, double cost) {
-        this.vehicleId = vehicleId;
+    public Vehicle(String registerNo, String vehicleStatus, String vehicleType, double cost, LocalDateTime inTime, Garage garage) {
         this.registerNo = registerNo;
         this.vehicleStatus = vehicleStatus;
         this.vehicleType = vehicleType;
         this.cost = cost;
+        this.inTime = inTime;
+        this.garage = garage;
     }
-
 
     public Vehicle() {
         super();
@@ -76,12 +79,20 @@ public class Vehicle {
         this.cost = cost;
     }
 
-    public String getDate() {
-        return date;
+    public LocalDateTime getInTime() {
+        return inTime;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setInTime(LocalDateTime inTime) {
+        this.inTime = inTime;
+    }
+
+    public LocalDateTime getOutTime() {
+        return outTime;
+    }
+
+    public void setOutTime(LocalDateTime outTime) {
+        this.outTime = outTime;
     }
 
     public Garage getGarage() {

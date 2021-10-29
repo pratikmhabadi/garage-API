@@ -1,6 +1,7 @@
 package com.garage.garage.services;
 
 import com.garage.garage.entities.Garage;
+import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
 
 import java.util.List;
@@ -8,11 +9,16 @@ import java.util.List;
 public interface GarageService {
     //-----------------get Methods---------
     //get garage by Id
-    Garage getGarage(int garageId);
+    Garage getGarageById(int garageId);
 
+    //get garages by name
+    List<Garage> getGarageByName(String garageName);
+
+    //get List of garages
     List<Garage> getAllGarages();
 
-    Garage addGarage(String garageName, String garageCity, String garageState);
+    //Add new Garage
+    Message addGarage(String garageName, String garageCity, String garageState);
 
 
 }

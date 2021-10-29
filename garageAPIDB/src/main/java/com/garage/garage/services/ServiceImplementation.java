@@ -3,12 +3,14 @@ package com.garage.garage.services;
 import com.garage.garage.dao.GarageDao;
 import com.garage.garage.dao.VehicleDao;
 import com.garage.garage.entities.Garage;
+import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -37,109 +39,115 @@ public class ServiceImplementation implements VehicleService, GarageService {
     //get vehicles by status repairing/repaired
     @Override
     public List<Vehicle> getVehiclesByStatus(String vehicleStatus) {
-        List<Vehicle> list = new ArrayList<>();
-        for (Vehicle vehicle : vehicleDao.findAll()) {
-            if (vehicle.getVehicleStatus().equals(vehicleStatus)) {
-                list.add(vehicle);
-            }
-        }
-        return list;
+        return vehicleDao.findByStatus(vehicleStatus);
     }
 
     //get vehicles by type bike/car
     @Override
     public List<Vehicle> getVehiclesByType(String vehicleType) {
-        List<Vehicle> list = new ArrayList<>();
-        for (Vehicle vehicle : vehicleDao.findAll()) {
-            if (vehicle.getVehicleType().equals(vehicleType)) {
-                list.add(vehicle);
-            }
-        }
-        return list;
+        return vehicleDao.findByType(vehicleType);
     }
 
     //get vehicles by garageId
     @Override
     public List<Vehicle> getVehiclesByGarage(int garageId) {
-        List<Vehicle> list = new ArrayList<>();
-        for (Vehicle vehicle : vehicleDao.findAll()) {
-            if (vehicle.getGarage().getGarageId() == garageId) {
-                list.add(vehicle);
-            }
-        }
-        return list;
+        return vehicleDao.findByGarage(garageId);
     }
 
 
     //-------------------save and update methods------------
     //Add new vehicles by register number and vehicle type (car/bike)
     @Override
-    public Vehicle addVehicle(int garageId, String registerNo, String vehicleType) {
-        if (getGarage(garageId) != null) {
-            if (getVehiclesByStatus("repairing").size() < 2) {
-                String type = vehicleType.toLowerCase(Locale.ROOT);
-                Vehicle vehicle = new Vehicle();
-                vehicle.setRegisterNo(registerNo.toUpperCase(Locale.ROOT));
-                vehicle.setVehicleStatus("repairing");
-                vehicle.setGarage(garageDao.getById(garageId));
-                switch (type) {
-                    case "bike":
-                        vehicle.setVehicleType(type);
-                        vehicle.setCost(200);
-                        return vehicleDao.save(vehicle);
+    public Message addVehicle(String garageName, String registerNo, String vehicleType) {
+        try {
+            Garage g = garageDao.findByName(garageName.trim().toLowerCase(Locale.ROOT)).get(0);
+            if ((getGarageById(g.getGarageId())) != null) {
+                if (vehicleDao.findRepairingByGarage(g.getGarageId(), "repairing").size() < 2) {
+                    String type = vehicleType.toLowerCase(Locale.ROOT);
+                    LocalDateTime now = LocalDateTime.now();
+                    switch (type) {
+                        case "bike":
+                            Vehicle vehicle1 = new Vehicle(registerNo.toUpperCase(Locale.ROOT), "repairing", type, 200, now, g);
+                            vehicleDao.save(vehicle1);
+                            break;
 
-                    case "car":
-                        vehicle.setVehicleType(type);
-                        vehicle.setCost(500);
-                        return vehicleDao.save(vehicle);
+                        case "car":
+                            Vehicle vehicle2 = new Vehicle(registerNo.toUpperCase(Locale.ROOT), "repairing", type, 500, now, g);
+                            vehicleDao.save(vehicle2);
+                            break;
 
-                    default:
-                        return null;
+                        default:
+                            return new Message("Change vehicle type", true);
+
+                    }
+                    return new Message("New Vehicle Added Successfully", true);
                 }
+                return new Message("Currently Garage is full , try after some time", true);
             }
+            return new Message("This Garage is not present", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Message("Exception occurred due to invalid input", false);
         }
-        return null;
     }
+
 
     //update vehicles status from repairing to repaired manually
     @Override
-    public Vehicle updateVehicle(int vehicleId, int interval) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-        Date date = new Date();
-        Vehicle vehicle = getVehicle(vehicleId);
-        if (vehicle.getVehicleStatus().equals("repairing")) {
-            vehicle.setVehicleStatus("repaired");
-            vehicle.setDate(formatter.format(date));
+    public Message updateVehicle(int vehicleId) {
+        try {
+            LocalDateTime date = LocalDateTime.now();
+            Vehicle vehicle = getVehicle(vehicleId);
+            if (vehicle.getVehicleStatus().equals("repairing")) {
+                vehicle.setVehicleStatus("repaired");
+                vehicle.setOutTime(date);
+                vehicleDao.save(vehicle);
+            }
+            return new Message("Vehicle is repaired", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Message("Some Error Occurred", false);
         }
-        return vehicleDao.save(vehicle);
     }
 
     // update vehicles status from repairing to repaired automatically
-    @Scheduled(fixedDelay = 1000)
+    @Scheduled(fixedDelay = 10000)
     void autoUpdateToRepaired() throws InterruptedException {
-        List<Vehicle> list = getVehiclesByStatus("repairing");
-        if (!list.isEmpty()) {
-            Vehicle vehicle = getVehicle(list.get(0).getVehicleId());
-            vehicle.setVehicleStatus("repaired");
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            Date date = new Date();
-            vehicle.setDate(formatter.format(date));
-            vehicleDao.save(vehicle);
-            Random random = new Random();
-            int delay = random.nextInt(9999);//get random delay
-            Thread.sleep(delay);
-        } else {
-            //if there is no entry found it will sleep for 5 min
-            System.out.println("No repairing Vehicle found");
-            Thread.sleep(300000);
+        try {
+            List<Vehicle> list = vehicleDao.findByStatus("repairing");
+            if (!list.isEmpty()) {
+                for (Vehicle vehicle : list) {
+                    LocalDateTime now = LocalDateTime.now();
+                    LocalDateTime inTime = vehicle.getInTime();
+                    long diff = Duration.between(inTime,now).getSeconds();
+                    System.out.println(diff);
+                    if (diff >= 30) {
+                        vehicle.setOutTime(now);
+                        vehicle.setVehicleStatus("repaired");
+                        vehicleDao.save(vehicle);
+                    }
+                }
+            } else {
+                System.out.println("List is empty");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Some Error Occurred");
         }
     }
+
 
     //---------------delete methods-------------
     //delete vehicle by ID
     @Override
-    public void deleteVehicle(int vehicleId) {
-        vehicleDao.deleteById(vehicleId);
+    public Message deleteVehicle(int vehicleId) {
+        try {
+            vehicleDao.deleteById(vehicleId);
+            return new Message("Vehicle is deleted", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Message("Some Error Occurred", true);
+        }
     }
 
 
@@ -147,8 +155,14 @@ public class ServiceImplementation implements VehicleService, GarageService {
     //------------get methods---------------
     //get garage by Id
     @Override
-    public Garage getGarage(int garageId) {
+    public Garage getGarageById(int garageId) {
         return garageDao.findById(garageId).orElse(null);
+    }
+
+    //get garage by Name
+    @Override
+    public List<Garage> getGarageByName(String garageName) {
+        return garageDao.findByName(garageName);
     }
 
     //get all garages
@@ -157,11 +171,18 @@ public class ServiceImplementation implements VehicleService, GarageService {
         return garageDao.findAll();
     }
 
+
     //--------- Save and Update method------------
     @Override
-    public Garage addGarage(String garageName, String garageCity, String garageState) {
-        Garage garage = new Garage(garageName, garageCity, garageState);
-        return garageDao.save(garage);
+    public Message addGarage(String garageName, String garageCity, String garageState) {
+        try {
+            Garage garage = new Garage(garageName.trim().toLowerCase(Locale.ROOT), garageCity.trim().toLowerCase(Locale.ROOT), garageState.trim().toLowerCase(Locale.ROOT));
+            garageDao.save(garage);
+            return new Message("New Garage Added Successfully.", true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Message("Some Error Occurred", true);
+        }
     }
 
 

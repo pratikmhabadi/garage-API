@@ -1,6 +1,7 @@
 package com.garage.garage.services;
 
 import com.garage.garage.entities.Garage;
+import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
 
 import java.util.List;
@@ -26,15 +27,15 @@ public interface VehicleService {
     //---------------save and update methods--------------
 
     //add new vehicle by registerNo and type
-    Vehicle addVehicle(int garageId,String registerNo, String vehicleType);
+    Message addVehicle(String garageName, String registerNo, String vehicleType);
 
     //update vehicle by id
-    Vehicle updateVehicle(int vehicleId, int interval);
+    Message updateVehicle(int vehicleId);
 
     //---------------delete methods ------------
 
     // delete vehicle by id
-    void deleteVehicle(int vehicleId);
+    Message deleteVehicle(int vehicleId);
 
 
 }
