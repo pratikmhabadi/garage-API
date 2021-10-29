@@ -6,6 +6,8 @@ import com.garage.garage.entities.Vehicle;
 import com.garage.garage.services.GarageService;
 import com.garage.garage.services.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -82,14 +84,15 @@ public class MyController {
 
     //--------------------PostMappings----------------------------
     //add new vehicle
-    @PostMapping("/garage/{garageName}/vehicle/{registerNo}/{vehicleType}")
-    public Message addVehicle(@PathVariable String garageName, @PathVariable String registerNo, @PathVariable String vehicleType) {
-        return this.vehicleService.addVehicle(garageName.trim().toLowerCase(Locale.ROOT), registerNo.trim().toLowerCase(Locale.ROOT), vehicleType.trim().toLowerCase(Locale.ROOT));
+    @PostMapping(path = "/garage/{garageName}/vehicle", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Message addVehicle(@RequestBody Vehicle vehicle, @PathVariable String garageName) {
+        return this.vehicleService.addVehicle(garageName.trim().toLowerCase(Locale.ROOT), vehicle.getRegisterNo().trim(), vehicle.getVehicleType().trim().toLowerCase(Locale.ROOT));
     }
 
-    @PostMapping("/garage/{garageName}/{garageCity}/{garageState}")
-    public Message addGarage(@PathVariable String garageName, @PathVariable String garageCity, @PathVariable String garageState) {
-        return this.garageService.addGarage(garageName.trim().toLowerCase(Locale.ROOT), garageCity.trim().toLowerCase(Locale.ROOT), garageState.trim().toLowerCase(Locale.ROOT));
+    //add new garage
+    @PostMapping(path = "/garage", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Message addGarage(@RequestBody Garage garage) {
+        return this.garageService.addGarage(garage.getGarageName().trim().toLowerCase(Locale.ROOT), garage.getGarageCity().trim().toLowerCase(Locale.ROOT), garage.getGarageState().trim().toLowerCase(Locale.ROOT));
     }
 
     //------------------PutMappings--------------------------
