@@ -3,6 +3,7 @@ package com.garage.garage.services;
 import com.garage.garage.entities.Garage;
 import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface GarageService {
     List<Garage> getAllGarages();
 
     //Add new Garage
-    Message addGarage(String garageName, String garageCity, String garageState);
+    ResponseEntity<Message> addGarage(String garageName, String garageCity, String garageState);
 
 
 }

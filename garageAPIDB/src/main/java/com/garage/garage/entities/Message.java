@@ -3,16 +3,31 @@ package com.garage.garage.entities;
 
 public class Message {
 
+    private String status;
     private String message;
-    private boolean status;
+    private String error;
 
-    public Message(String message, boolean status) {
-        this.message = message;
+    public Message(String status, String message, String error) {
         this.status = status;
+        this.message = message;
+        this.error = error;
+    }
+
+    public Message(String status, String message) {
+        this.status = status;
+        this.message = message;
     }
 
     public Message() {
         super();
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getMessage() {
@@ -23,11 +38,11 @@ public class Message {
         this.message = message;
     }
 
-    public boolean isStatus() {
-        return status;
+    public String getError() {
+        return error;
     }
 
-    public void setStatus(boolean status) {
-        this.status = status;
+    public void setError(String error) {
+        this.error = error;
     }
 }

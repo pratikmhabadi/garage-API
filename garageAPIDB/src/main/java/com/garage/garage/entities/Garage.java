@@ -1,6 +1,7 @@
 package com.garage.garage.entities;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +10,11 @@ public class Garage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int garageId;
+    @NotBlank
     private String garageName;
+    @NotBlank
     private String garageCity;
+    @NotBlank
     private String garageState;
 
     @OneToMany(mappedBy = "garage")

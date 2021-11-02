@@ -7,9 +7,12 @@ import com.garage.garage.services.GarageService;
 import com.garage.garage.services.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,19 +27,19 @@ public class MyController {
     //------------GetMappings-------------------------
     // get vehicle by ID
     @GetMapping("/vehicle/{vehicleId}")
-    public Vehicle getVehicle(@PathVariable String vehicleId) {
+    public Vehicle getVehicle(@PathVariable @NotBlank String vehicleId) {
         return this.vehicleService.getVehicle(Integer.parseInt(vehicleId));
     }
 
     //get garage by Id
     @GetMapping("/garage/{garageId}")
-    public Garage getGarageByID(@PathVariable String garageId) {
+    public Garage getGarageByID(@PathVariable @NotBlank String garageId) {
         return this.garageService.getGarageById(Integer.parseInt(garageId));
     }
 
     //get garage by name
     @GetMapping("/garages/{garageName}")
-    public List<Garage> getGarageByName(@PathVariable String garageName) {
+    public List<Garage> getGarageByName(@PathVariable @NotBlank String garageName) {
         return this.garageService.getGarageByName(garageName.trim().toLowerCase(Locale.ROOT));
     }
 
@@ -78,34 +81,34 @@ public class MyController {
 
     //get vehicles by garage ID
     @GetMapping("garage/{garageId}/vehicles")
-    public List<Vehicle> getVehiclesByGarage(@PathVariable String garageId) {
+    public List<Vehicle> getVehiclesByGarage(@PathVariable @NotBlank String garageId) {
         return this.vehicleService.getVehiclesByGarage(Integer.parseInt(garageId));
     }
 
     //--------------------PostMappings----------------------------
     //add new vehicle
     @PostMapping(path = "/garage/{garageName}/vehicle", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Message addVehicle(@RequestBody Vehicle vehicle, @PathVariable String garageName) {
+    public ResponseEntity <Message> addVehicle(@Valid @RequestBody Vehicle vehicle, @PathVariable @NotBlank String garageName) {
         return this.vehicleService.addVehicle(garageName.trim().toLowerCase(Locale.ROOT), vehicle.getRegisterNo().trim(), vehicle.getVehicleType().trim().toLowerCase(Locale.ROOT));
     }
 
     //add new garage
     @PostMapping(path = "/garage", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Message addGarage(@RequestBody Garage garage) {
+    public ResponseEntity<Message> addGarage(@Valid @RequestBody Garage garage) {
         return this.garageService.addGarage(garage.getGarageName().trim().toLowerCase(Locale.ROOT), garage.getGarageCity().trim().toLowerCase(Locale.ROOT), garage.getGarageState().trim().toLowerCase(Locale.ROOT));
     }
 
     //------------------PutMappings--------------------------
     //update vehicle by status by ID
     @PutMapping("/vehicle/{vehicleId}")
-    public Message updateVehicle(@PathVariable String vehicleId) {
+    public ResponseEntity<Message> updateVehicle(@PathVariable @NotBlank String vehicleId) {
         return this.vehicleService.updateVehicle(Integer.parseInt(vehicleId));
     }
 
     //---------------DeleteMappings--------------------
     //delete vehicle by ID
     @DeleteMapping("/vehicle/{vehicleId}")
-    public Message deleteVehicle(@PathVariable String vehicleId) {
+    public ResponseEntity <Message> deleteVehicle(@PathVariable @NotBlank String vehicleId) {
         return this.vehicleService.deleteVehicle(Integer.parseInt(vehicleId));
     }
 }

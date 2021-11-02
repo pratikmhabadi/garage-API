@@ -3,6 +3,7 @@ package com.garage.garage.services;
 import com.garage.garage.entities.Garage;
 import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -27,15 +28,15 @@ public interface VehicleService {
     //---------------save and update methods--------------
 
     //add new vehicle by registerNo and type
-    Message addVehicle(String garageName, String registerNo, String vehicleType);
+    ResponseEntity<Message> addVehicle(String garageName, String registerNo, String vehicleType);
 
     //update vehicle by id
-    Message updateVehicle(int vehicleId);
+    ResponseEntity<Message> updateVehicle(int vehicleId);
 
     //---------------delete methods ------------
 
     // delete vehicle by id
-    Message deleteVehicle(int vehicleId);
+    ResponseEntity<Message> deleteVehicle(int vehicleId);
 
 
 }

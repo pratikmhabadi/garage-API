@@ -6,13 +6,14 @@ import com.garage.garage.entities.Garage;
 import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
+import javax.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -58,10 +59,10 @@ public class ServiceImplementation implements VehicleService, GarageService {
     //-------------------save and update methods------------
     //Add new vehicles by register number and vehicle type (car/bike)
     @Override
-    public Message addVehicle(String garageName, String registerNo, String vehicleType) {
+    public ResponseEntity<Message> addVehicle(String garageName, String registerNo, String vehicleType) {
         try {
-            Garage g = garageDao.findByName(garageName.trim().toLowerCase(Locale.ROOT)).get(0);
-            if ((getGarageById(g.getGarageId())) != null) {
+            if (!garageDao.findByName(garageName.trim().toLowerCase(Locale.ROOT)).isEmpty()) {
+                Garage g = garageDao.findByName(garageName.trim().toLowerCase(Locale.ROOT)).get(0);
                 if (vehicleDao.findRepairingByGarage(g.getGarageId(), "repairing").size() < 2) {
                     String type = vehicleType.toLowerCase(Locale.ROOT);
                     LocalDateTime now = LocalDateTime.now();
@@ -77,36 +78,44 @@ public class ServiceImplementation implements VehicleService, GarageService {
                             break;
 
                         default:
-                            return new Message("Change vehicle type", true);
+                            return new ResponseEntity<Message>(new Message("400", "Validation Error", "Invalid Vehicle Type"), HttpStatus.BAD_REQUEST);
 
                     }
-                    return new Message("New Vehicle Added Successfully", true);
+                    return new ResponseEntity<Message>(new Message("200", "New vehicle Added Successfully"), HttpStatus.OK);
                 }
-                return new Message("Currently Garage is full , try after some time", true);
+                return new ResponseEntity<Message>(new Message("200", "Currently Garage is full , try after some time"), HttpStatus.OK);
             }
-            return new Message("This Garage is not present", true);
+            return new ResponseEntity<Message>(new Message("404", "This Garage is not present", "Not Found"), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             e.printStackTrace();
-            return new Message("Exception occurred due to invalid input", false);
+            //return new ResponseEntity<Message> (new Message("500","Something Went Wrong"),HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<Message>(new Message("500", "Something Went Wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
 
     //update vehicles status from repairing to repaired manually
     @Override
-    public Message updateVehicle(int vehicleId) {
+    public ResponseEntity<Message> updateVehicle(int vehicleId) {
         try {
             LocalDateTime date = LocalDateTime.now();
-            Vehicle vehicle = getVehicle(vehicleId);
-            if (vehicle.getVehicleStatus().equals("repairing")) {
-                vehicle.setVehicleStatus("repaired");
-                vehicle.setOutTime(date);
-                vehicleDao.save(vehicle);
+            Vehicle vehicle = vehicleDao.getById(vehicleId);
+            if (vehicle != null) {
+                if (vehicle.getVehicleStatus().equals("repairing")) {
+                    vehicle.setVehicleStatus("repaired");
+                    vehicle.setOutTime(date);
+                    vehicleDao.save(vehicle);
+                    return new ResponseEntity<Message>(new Message("200", "Vehicle Id " + vehicleId + " is Repaired"), HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<Message>(new Message("200", "Vehicle Id " + vehicleId + " is already repaired"), HttpStatus.OK);
+                }
+            } else {
+                return new ResponseEntity<Message>(new Message("404", "Vehicle Id " + vehicleId + " is Not Found", "Not Found"), HttpStatus.NOT_FOUND);
             }
-            return new Message("Vehicle is repaired", true);
         } catch (Exception e) {
             e.printStackTrace();
-            return new Message("Some Error Occurred", false);
+            //return new ResponseEntity<Message>(new Message("500", "Something Went Wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new EntityNotFoundException();
         }
     }
 
@@ -119,7 +128,7 @@ public class ServiceImplementation implements VehicleService, GarageService {
                 for (Vehicle vehicle : list) {
                     LocalDateTime now = LocalDateTime.now();
                     LocalDateTime inTime = vehicle.getInTime();
-                    long diff = Duration.between(inTime,now).getSeconds();
+                    long diff = Duration.between(inTime, now).getSeconds();
                     System.out.println(diff);
                     if (diff >= 30) {
                         vehicle.setOutTime(now);
@@ -132,7 +141,7 @@ public class ServiceImplementation implements VehicleService, GarageService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Some Error Occurred");
+            System.out.println("Something Went Wrong");
         }
     }
 
@@ -140,13 +149,15 @@ public class ServiceImplementation implements VehicleService, GarageService {
     //---------------delete methods-------------
     //delete vehicle by ID
     @Override
-    public Message deleteVehicle(int vehicleId) {
+    public ResponseEntity<Message> deleteVehicle(int vehicleId) {
         try {
             vehicleDao.deleteById(vehicleId);
-            return new Message("Vehicle is deleted", true);
+            return new ResponseEntity<Message>(new Message("200", "Vehicle ID" + vehicleId + " Deleted Successfully"), HttpStatus.OK);
+
         } catch (Exception e) {
             e.printStackTrace();
-            return new Message("Some Error Occurred", true);
+            // return new ResponseEntity<Message>(new Message("404", "Match Not Found"), HttpStatus.NOT_FOUND);
+            throw new EntityNotFoundException();
         }
     }
 
@@ -174,14 +185,14 @@ public class ServiceImplementation implements VehicleService, GarageService {
 
     //--------- Save and Update method------------
     @Override
-    public Message addGarage(String garageName, String garageCity, String garageState) {
+    public ResponseEntity<Message> addGarage(String garageName, String garageCity, String garageState) {
         try {
             Garage garage = new Garage(garageName.trim().toLowerCase(Locale.ROOT), garageCity.trim().toLowerCase(Locale.ROOT), garageState.trim().toLowerCase(Locale.ROOT));
             garageDao.save(garage);
-            return new Message("New Garage Added Successfully.", true);
+            return new ResponseEntity<Message>(new Message("200", "New Garage Added Successfully"), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
-            return new Message("Some Error Occurred", true);
+            return new ResponseEntity<Message>(new Message("500", "Something Went Wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
