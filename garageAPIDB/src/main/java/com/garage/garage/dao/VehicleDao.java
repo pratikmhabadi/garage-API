@@ -14,8 +14,8 @@ public interface VehicleDao extends JpaRepository<Vehicle, Integer> {
     @Query("SELECT v FROM Vehicle v WHERE v.vehicleStatus = :s")
     List<Vehicle> findByStatus(@Param("s") String vehicleStatus);
 
-    @Query("SELECT v FROM Vehicle v WHERE v.vehicleStatus = :s")
-    List<Vehicle> findByType( @Param("s") String vehicleStatus);
+    @Query("SELECT v FROM Vehicle v WHERE v.vehicleType = :s")
+    List<Vehicle> findByType( @Param("s") String vehicleType);
 
     @Query("SELECT v FROM Vehicle v left join v.garage g WHERE g.garageId =:i" )
     List<Vehicle> findByGarage( @Param("i") int garageId);

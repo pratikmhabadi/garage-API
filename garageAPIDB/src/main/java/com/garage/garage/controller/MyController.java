@@ -5,6 +5,8 @@ import com.garage.garage.entities.Message;
 import com.garage.garage.entities.Vehicle;
 import com.garage.garage.services.GarageService;
 import com.garage.garage.services.VehicleService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +18,11 @@ import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Locale;
 
+
 @RestController
 public class MyController {
+
+    Logger logger = LoggerFactory.getLogger(MyController.class);
 
     @Autowired
     private VehicleService vehicleService;
@@ -28,6 +33,7 @@ public class MyController {
     // get vehicle by ID
     @GetMapping("/vehicle/{vehicleId}")
     public Vehicle getVehicle(@PathVariable @NotBlank String vehicleId) {
+        logger.info("Getting Vehicles By {} ID",vehicleId);
         return this.vehicleService.getVehicle(Integer.parseInt(vehicleId));
     }
 
